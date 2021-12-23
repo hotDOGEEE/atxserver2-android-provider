@@ -3,6 +3,7 @@
 
 import os
 import subprocess
+import time
 import traceback
 import zipfile
 
@@ -50,19 +51,21 @@ class AndroidDevice(object):
         except Exception as e:
             logger.warning("Init failed: %s", e)
 
-    async def init(self):
+    async def init(self, link: bool = True):
         """
         do forward and start proxy
         """
         logger.info("Init device: %s", self._serial)
         self._callback(STATUS_INIT)
-
         self._init_binaries()
-        self._init_apks()
+        if bool:
+            self._init_apks()
+
         await self._init_forwards()
 
         await adb.shell(self._serial,
                         "/data/local/tmp/atx-agent server --stop")
+
         await adb.shell(self._serial,
                         "/data/local/tmp/atx-agent server --nouia -d")
 
@@ -152,17 +155,23 @@ class AndroidDevice(object):
             else:
                 print(info, ":", m.version_code, m.version_name)
                 logger.debug("%s install %s", self, path)
-                self._device.install(path, force=True)
+                # self._device.install(path, force=True)
         except Exception as e:
             traceback.print_exc()
             logger.warning("%s Install apk %s error %s", self, path, e)
 
     async def _init_forwards(self):
         logger.debug("%s forward atx-agent", self)
+        d1 = time.time()
         self._atx_proxy_port = await self.proxy_device_port(7912)
+        d2 = time.time()
+        logger.debug(d2-d1)
         self._whatsinput_port = await self.proxy_device_port(6677)
-
+        d3 = time.time()
+        logger.debug(d3-d2)
         port = self._adb_remote_port = freeport.get()
+        d4 = time.time()
+        logger.debug(d4-d3)
         logger.debug("%s adbkit start, port %d", self, port)
 
         self.run_background([
@@ -244,7 +253,7 @@ class AndroidDevice(object):
         """ 設備使用完后的清理工作 """
         self.close()
         await adb.shell(self._serial, "input keyevent HOME")
-        await self.init()
+        await self.init(link=False)
 
     def wait(self):
         for p in self._procs:

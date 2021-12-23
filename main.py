@@ -280,7 +280,7 @@ async def async_main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # yapf: disable
-    parser.add_argument('-s', '--server', default='localhost:4000', help='server address')
+    parser.add_argument('-s', '--server', default='10.23.0.83:4000', help='server address')
     parser.add_argument("--allow-remote", action="store_true", help="allow remote connect device")
     parser.add_argument('-t', '--test', action="store_true", help="run test code")
     parser.add_argument('-p', '--port', type=int, default=3500, help='listen port')
